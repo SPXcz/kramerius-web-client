@@ -3,6 +3,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { Translator } from 'angular-translator';
 import { KrameriusInfo } from '../../model/krameriusInfo.model';
 import { AppSettings } from '../../services/app-settings';
+import { ConfigurizedVariablesService } from '../../services/configurized-variables.service';
 import { KrameriusInfoService } from '../../services/kramerius-info.service';
 import { LicenceService } from '../../services/licence.service';
 
@@ -20,7 +21,8 @@ export class LicenceMessagesComponent implements OnInit {
   loading: boolean;
   html;
 
-  constructor(private krameriusInfo: KrameriusInfoService, private settings: AppSettings, private licenceService: LicenceService, private translator: Translator, private http: HttpClient) { }
+  constructor(private krameriusInfo: KrameriusInfoService, private settings: AppSettings, private licenceService: LicenceService, private translator: Translator, private http: HttpClient,
+              ) { }
 
   ngOnInit() {
     this.translator.languageChanged.subscribe(() => {

@@ -32,6 +32,7 @@ export class AppSettings {
   public mapSearch: boolean;
   public hiddenLocks: boolean;
   public localAuth: any;
+  public variables: any;
 
   public static langs = ['cs', 'en', 'de', 'sk'];
   public ga = APP_GLOBAL.ga;
@@ -132,6 +133,7 @@ export class AppSettings {
     this.maxOmnibusParts = kramerius.maxOmnibusParts || 0;
     this.currentCode = this.code;
     this.localAuth = kramerius.localAuth || this.auth ;
+    this.variables = kramerius.variables || {};
     this.listner.next(kramerius);
   }
 
@@ -202,4 +204,5 @@ interface KrameriusData {
   maxOmnibusParts: number;
   maxOmnibusPages: number;
   localAuth: any;
+  variables: any;
 }
