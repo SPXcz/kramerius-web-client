@@ -5,12 +5,11 @@ import { Utils } from './utils.service';
 import { AppError } from './../common/errors/app-error';
 import { NotFoundError } from './../common/errors/not-found-error';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { throwError } from 'rxjs';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
 import { UnauthorizedError } from '../common/errors/unauthorized-error';
-import { Response } from '@angular/http/src/static_response';
 import { AppSettings } from './app-settings';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { User } from '../model/user.model';
@@ -316,7 +315,6 @@ export class KrameriusApiService {
         const url = this.getApiUrl() + '/user/logout';
         return this.http.get(url).catch(this.handleError);
     }
-
 
     getRecommended() {
         const url = this.getApiUrl() + '/feed/custom';

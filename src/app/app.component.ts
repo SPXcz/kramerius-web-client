@@ -1,13 +1,13 @@
 import { AppSettings } from './services/app-settings';
 import { HistoryService } from './services/history.service';
 import { Component, OnInit } from '@angular/core';
-import { Translator } from 'angular-translator';
 import { Router, NavigationEnd } from '@angular/router';
 import { AppState } from './app.state';
 import { Location } from '@angular/common';
 
 import { MatomoInjector } from 'ngx-matomo';
 import { AnalyticsService } from './services/analytics.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-root',
@@ -18,7 +18,7 @@ import { AnalyticsService } from './services/analytics.service';
 export class AppComponent implements OnInit {
 
   constructor(
-    private translator: Translator,
+    private translate: TranslateService,
     private location: Location,
     private history: HistoryService,
     private router: Router,
@@ -39,9 +39,9 @@ export class AppComponent implements OnInit {
         this.state.pageUrl = event.url;
       }
     });
-    const lang = localStorage.getItem('lang');
-    if (lang) {
-      this.translator.language = lang;
-    }
+    // const lang = localStorage.getItem('lang');
+    // if (lang) {
+    //   this.translate.use(lang);
+    // }
   }
 }

@@ -1,0 +1,35 @@
+@import './src/variables.scss';
+
+.app-browse-toolbar {
+  display: block;
+  height: $app-toolbar-height;
+  padding: 0 1rem;
+  border-bottom: 1px solid $app-grey-l-2;
+  position: relative;
+  margin: 0;
+  .col {
+    padding: 0 !important;
+    &.app-col-left {
+      position: relative;
+      mat-icon {
+        margin-top: 16px;
+      }
+    }
+    &.app-col-right {
+      text-align: right;
+      .label {
+        color: $app-grey-l-1;
+      }
+      .app-ordering {
+        margin-top: 16px;
+        display: inline-block;
+        color: $primary-color;
+        line-height: 24px;
+        cursor: pointer;
+        mat-icon {
+          vertical-align: middle;
+        }
+      }
+    }
+  } 
+}

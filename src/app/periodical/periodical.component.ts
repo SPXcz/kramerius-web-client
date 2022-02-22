@@ -2,11 +2,13 @@ import { ActivatedRoute } from '@angular/router';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { PeriodicalService } from '../services/periodical.service';
 import { PeriodicalQuery } from './periodical_query.model';
-import { combineLatest } from 'rxjs/observable/combineLatest';
+import { combineLatest } from 'rxjs';
 
 @Component({
   selector: 'app-periodical',
-  templateUrl: './periodical.component.html'
+  templateUrl: './periodical.component.html',
+  styleUrls: ['./periodical.component.scss']
+
 })
 export class PeriodicalComponent implements OnInit, OnDestroy {
 

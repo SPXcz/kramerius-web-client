@@ -5,11 +5,12 @@ import { Router } from '@angular/router';
 import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { AnalyticsService } from '../../services/analytics.service';
 import { CompleterCmp } from 'ng2-completer';
-import { Translator } from 'angular-translator';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-home-search-bar',
-  templateUrl: './home-search-bar.component.html'
+  templateUrl: './home-search-bar.component.html',
+  styleUrls: ['./home-search-bar.component.scss']
 })
 export class HomeSearchBarComponent implements OnInit {
 
@@ -19,11 +20,11 @@ export class HomeSearchBarComponent implements OnInit {
 
   searchStr: string;
 
-  @ViewChild('completer') completer: CompleterCmp;
+  @ViewChild('completer', { static: true }) completer: CompleterCmp;
 
   constructor(
     public router: Router,
-    private translator: Translator,
+    private translate: TranslateService,
     public appSettings: AppSettings,
     public analytics: AnalyticsService,
     private localStorageService: LocalStorageService,
@@ -47,9 +48,9 @@ export class HomeSearchBarComponent implements OnInit {
 
   getPlaceholder(): string {
       if (this.accessibilityFilter) {
-        return String(this.translator.instant('searchbar.main.public'));
+        return String(this.translate.instant('searchbar.main.public'));
       } else {
-        return String(this.translator.instant('searchbar.main.all'));
+        return String(this.translate.instant('searchbar.main.all'));
       }
   }
 

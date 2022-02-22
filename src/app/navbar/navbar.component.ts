@@ -4,13 +4,14 @@ import { AppSettings } from './../services/app-settings';
 import { LibrarySearchService } from './../services/library-search.service';
 import { Router } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
-import { Translator } from 'angular-translator';
 import { AppState } from '../app.state';
 import { HistoryService } from '../services/history.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-navbar',
-  templateUrl: './navbar.component.html'
+  templateUrl: './navbar.component.html',
+  styleUrls: ['./navbar.component.scss']
 })
 export class NavbarComponent implements OnInit {
 
@@ -18,8 +19,8 @@ export class NavbarComponent implements OnInit {
   richCollections = false;
 
   constructor(
-    public translator: Translator,
     public router: Router,
+    public translate: TranslateService,
     public authService: AuthService,
     public appSettings: AppSettings,
     private history: HistoryService,
@@ -32,13 +33,13 @@ export class NavbarComponent implements OnInit {
   }
 
   languages(): string[] {
-    return AppSettings.langs;
+    return this.appSettings.languages;
   }
 
   onLanguageChanged(lang: string) {
     this.analytics.sendEvent('navbar', 'language', lang);
     localStorage.setItem('lang', lang);
-    this.translator.language = lang;
+    this.translate.use(lang);
   }
 
   goBack() {
@@ -54,7 +55,11 @@ export class NavbarComponent implements OnInit {
   login() {
     if (this.appSettings.localAuth) {
       this.analytics.sendEvent('navbar', 'login-shib');
+<<<<<<< HEAD
       const url = `${this.appSettings.localAuth.loginUrl}?target=${window.location.href}`;
+=======
+      const url = `${this.appSettings.auth.loginUrl.replace(/\${LANG}/, this.translate.currentLang)}?target=${window.location.href}`;
+>>>>>>> 9507de82b1cab65df4ff22ade2d0cce4750b5093
       window.open(url, '_top');
     } else if (this.appSettings.krameriusLogin && !this.authService.isLoggedIn()) {
       this.analytics.sendEvent('navbar', 'login');

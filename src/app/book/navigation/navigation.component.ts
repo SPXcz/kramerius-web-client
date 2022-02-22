@@ -1,8 +1,7 @@
-import { OnDestroy } from '@angular/core/src/metadata/lifecycle_hooks';
 import { Page } from './../../model/page.model';
 import { BookService } from './../../services/book.service';
-import { Component, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs/Subscription';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { AnalyticsService } from '../../services/analytics.service';
 import { EpubService } from '../../services/epub.service';
 import { PdfService } from '../../services/pdf.service';
@@ -11,7 +10,8 @@ declare var $: any;
 
 @Component({
   selector: 'app-navigation',
-  templateUrl: './navigation.component.html'
+  templateUrl: './navigation.component.html',
+  styleUrls: ['./navigation.component.scss']
 })
 export class NavigationComponent implements OnInit, OnDestroy {
 

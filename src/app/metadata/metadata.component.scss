@@ -1,0 +1,138 @@
+@import './src/variables.scss';
+
+  .app-metadata-wrapper {
+    height: 100%;
+    overflow: hidden;
+    strong {
+      font-weight: 500;
+      color: $app-grey-d-4;
+    }
+     .app-metadata-controls {
+      display: block;
+      height: 55px;
+      line-height: 55px;
+      border-width: 0 0 1px 0;
+      border-style: solid;
+      border-color: #e0e0e0;
+      background-color: #FFFFFF;
+      mat-icon {
+        cursor: pointer;
+        margin-left: 17px; 
+        margin-right: 17px;  
+        font-size: 21px;
+        float: right;  
+        color: $app-grey;
+        line-height: inherit;
+        height: inherit;
+        &:hover {
+          color: #000;
+        }
+      }
+    }
+    .app-metadata-content {
+      padding: 1rem;
+      overflow: auto;
+      height: calc(100% - 55px);
+      h1 {
+        font-size: 1.1rem;
+        padding: 5px 0;
+        margin: 0;
+        color: #555555;
+        &.app-cut {
+          line-height: 1.6rem;
+          height: 3.2rem;
+          overflow: hidden;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
+          display: -webkit-box;
+        }
+      }
+
+      .single-line {
+        overflow: hidden;
+        line-height: 20px;
+        height: 20px;
+        -webkit-line-clamp: 1;
+        display: block;
+        display: -webkit-box;
+        text-overflow: ellipsis;
+      }
+      
+      .app-more {
+        cursor: pointer;
+        color: $app-grey;
+        display: block;
+        margin-bottom: -4px;
+        margin-left: -2px;
+        &:hover {
+          color: #000;
+        }
+      }
+      
+      label {
+        font-size: 0.9rem;
+        margin-top: 15px;
+        display: block;
+        margin-bottom: 2px;
+        color: $app-grey-d-1;
+      }
+      
+      .app-subtitle {
+        color: $app-grey-d-3;
+      }
+      .app-identifier {
+        color: $app-grey-d-1;
+        font-size: 14px;
+        margin-top: 4px;
+        a {
+        line-break: anywhere;
+        }
+      }
+      .app-part-number {
+        color: $app-grey-d-1;
+      }
+      .app-part-name {
+        color: $app-grey-d-3;
+      }
+      .divider {
+        margin: 10px 0;
+        background: transparent;
+      }
+      .app-value {
+        font-size: 15px;
+        color: $app-grey-d-2;
+      }
+      .app-policy {
+        line-height: 24px;
+        .app-lock {
+          vertical-align: middle;
+          font-size: 20px;
+          color: $app-grey-d-2;
+          // margin-right: 2px;
+          &.app-lock-licence-open, &.app-lock-licence-locked {
+            color: $app-licence-color;
+          }
+        }
+        .app-message {
+          color: $app-grey-d-2;
+        }
+        .app-help {
+          vertical-align: middle;
+          font-size: 20px;
+          margin-left: 4px;
+          color: $primary-color;
+          cursor: pointer;
+        }
+        .app-licence-label {
+          color: #888;
+          margin-left: 22px;
+          font-size: 12px;
+        }
+        .app-licence-value {
+          color: $primary-color;
+          margin-left: 22px;
+          cursor: pointer;
+        }
+      }
+    }
+  }

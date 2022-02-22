@@ -6,31 +6,30 @@ import { LocalStorageService } from './local-storage.service';
 import { NotFoundError } from './../common/errors/not-found-error';
 import { UnauthorizedError } from './../common/errors/unauthorized-error';
 import { AppError } from './../common/errors/app-error';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+import { Observable } from 'rxjs';
+import { Subject } from 'rxjs';
 import { KrameriusApiService } from './kramerius-api.service';
 import { Page, PagePosition, PageImageType } from './../model/page.model';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
-import { MzModalService } from 'ngx-materialize';
-import { DialogOcrComponent } from '../dialog/dialog-ocr/dialog-ocr.component';
-import { forkJoin} from 'rxjs/observable/forkJoin';
+import { forkJoin} from 'rxjs';
 import { Article } from '../model/article.model';
 import { HistoryService } from './history.service';
-import { SimpleDialogComponent } from '../dialog/simple-dialog/simple-dialog.component';
 import { DomSanitizer} from '@angular/platform-browser';
 import { PageTitleService } from './page-title.service';
 import { InternalPart } from '../model/internal_part.model';
-import { Translator } from 'angular-translator';
 import { AnalyticsService } from './analytics.service';
-import { DialogPdfGeneratorComponent } from '../dialog/dialog-pdf-generator/dialog-pdf-generator.component';
 import { IiifService } from './iiif.service';
 import { LoggerService } from './logger.service';
 import { PeriodicalItem } from '../model/periodicalItem.model';
 import { LicenceService } from './licence.service';
-
-
+import { MatBottomSheet } from '@angular/material/bottom-sheet';
+import { MatDialog } from '@angular/material/dialog';
+import { PdfDialogComponent } from '../dialog/pdf-dialog/pdf-dialog.component';
+import { BasicDialogComponent } from '../dialog/basic-dialog/basic-dialog.component';
+import { OcrDialogComponent } from '../dialog/ocr-dialog/ocr-dialog.component';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable()
 export class BookService {
@@ -89,20 +88,20 @@ export class BookService {
         private localStorageService: LocalStorageService,
         private api: KrameriusApiService,
         private iiif: IiifService,
+        private dialog: MatDialog,
         private logger: LoggerService,
-        private translator: Translator,
+        private translate: TranslateService,
         private sanitizer: DomSanitizer,
         private history: HistoryService,
         private router: Router,
-        private licenceService: LicenceService,
-        private modalService: MzModalService) {
+        private bottomSheet: MatBottomSheet,
+        private licenceService: LicenceService) {
     }
 
     private assignPdfPath(uuid: string) {
         this.viewer = 'pdf';
         this.publishNewPages(BookPageState.Loading);
         this.api.getPdfPreviewBlob(uuid).subscribe(() => {
-            // this.bookState = BookState.Success;
             this.publishNewPages(BookPageState.Success);
             if (uuid === null) {
                 this.pdf = null;
@@ -111,7 +110,7 @@ export class BookService {
             }
             this.pdf = this.api.getPdfUrl(uuid);
             let url = 'assets/pdf/viewer.html?file=' + encodeURIComponent(this.pdf);
-            url += '&lang=' + this.translator.language;
+            url += '&lang=' + this.translate.currentLang;
             if (this.fulltextQuery) {
                 url += '&query=' + this.fulltextQuery;
             }
@@ -489,7 +488,7 @@ export class BookService {
         const pages = [];
         const parents = [];
         for (const p of inputPages) {
-            if (p['model'] === 'supplement' || (doctype == 'oldprintomnibusvolume' && p['model'] != 'page')) {
+            if (p['model'] === 'supplement' || (doctype == 'oldprintomnibusvolume' && p['model'] != 'oldprintomnibusvolume' && p['model'] != 'page')) {
                 parents.push(p);
                 this.extraParents.push(p);
             } else {
@@ -737,7 +736,7 @@ export class BookService {
             if (result.length > 1) {
                 options['ocr2'] = result[1];
             }
-            this.modalService.open(DialogOcrComponent, options);
+            this.bottomSheet.open(OcrDialogComponent, { data: options });
         });
     }
 
@@ -752,15 +751,15 @@ export class BookService {
                     uuid: this.getPage().uuid,
                     showCitation: this.isActionAvailable('citation')
                 };
-                this.modalService.open(DialogOcrComponent, options);
+                this.bottomSheet.open(OcrDialogComponent, { data: options });
             },
             error => {
                 if (error instanceof NotFoundError) {
-                    this.modalService.open(SimpleDialogComponent, {
+                    this.dialog.open(BasicDialogComponent, { data: {
                         title: 'common.warning',
                         message: 'dialogs.missing_alto.message',
                         button: 'common.close'
-                    });
+                    }, autoFocus: false });
                 }
             }
         );
@@ -768,11 +767,11 @@ export class BookService {
 
     showImageCrop(extent, right: boolean) {
         if (this.pageState === BookPageState.Inaccessible) {
-            this.modalService.open(SimpleDialogComponent, {
+            this.dialog.open(BasicDialogComponent, { data: {
                 title: 'common.warning',
                 message: 'dialogs.private_document_jpeg.message',
                 button: 'common.close'
-            });
+            }, autoFocus: false });
         } else if (this.pageState === BookPageState.Success && this.iiifEnabled) {
             const uuid = right ? this.getRightPage().uuid : this.getPage().uuid;
             const url = this.iiif.imageCrop(this.api.getIiifBaseUrl(uuid), extent[0], extent[1], extent[2], extent[3]);
@@ -784,11 +783,11 @@ export class BookService {
 
     showJpeg() {
         if (this.pageState === BookPageState.Inaccessible) {
-           this.modalService.open(SimpleDialogComponent, {
+            this.dialog.open(BasicDialogComponent, { data: {
                 title: 'common.warning',
                 message: 'dialogs.private_document_jpeg.message',
                 button: 'common.close'
-            });
+            }, autoFocus: false });
         } else if (this.pageState === BookPageState.Success) {
             if (this.iiifEnabled) {
                 window.open(this.iiif.getIiifImage(this.api.getIiifBaseUrl(this.getPage().uuid)), '_blank');
@@ -904,26 +903,27 @@ export class BookService {
 
     private showPdfDialog(type: string) {
         if (this.isPrivate && this.metadata.model === 'sheetmusic') {
-            this.modalService.open(SimpleDialogComponent, {
+            this.dialog.open(BasicDialogComponent, { data: {
                 title: 'common.warning',
                 message: 'dialogs.private_sheetmusic.message',
                 button: 'common.close'
-            });
+            }, autoFocus: false });
         } else if (this.isPrivate && type === 'generate') {
-            this.modalService.open(SimpleDialogComponent, {
+            this.dialog.open(BasicDialogComponent, { data: {
                 title: 'common.warning',
                 message: 'dialogs.private_document_pdf.message',
                 button: 'common.close'
-            });
+            }, autoFocus: false });
         } else {
-            this.modalService.open(DialogPdfGeneratorComponent, {
+            const opts = {
                 pageCount: this.getPageCount(),
                 currentPage: this.getPage().index,
                 doublePage: this.doublePage,
                 pages: this.pages,
                 type: type,
                 name: this.metadata.getShortTitle()
-            });
+            };
+            this.dialog.open(PdfDialogComponent, { data: opts, autoFocus: false });
         }
     }
 
@@ -1043,6 +1043,10 @@ export class BookService {
 
     isPageFailure() {
         return this.pageState === BookPageState.Failure;
+    }
+
+    isPageSuccess() {
+        return this.pageState === BookPageState.Success;
     }
 
     isDocLoading() {

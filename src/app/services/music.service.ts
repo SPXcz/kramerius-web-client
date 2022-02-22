@@ -2,19 +2,19 @@ import { SoundUnit } from './../model/soundunit.model';
 import { Track } from './../model/track.model';
 import { KrameriusApiService } from './kramerius-api.service';
 import { LocalStorageService } from './local-storage.service';
-import { ModsParserService } from './mods-parser.service';
 import { saveAs } from 'file-saver';
 import { DocumentItem } from './../model/document_item.model';
 import { Injectable } from '@angular/core';
 import { Metadata } from '../model/metadata.model';
-import { NgxGalleryImage } from 'ngx-gallery';
-import { MzModalService } from 'ngx-materialize';
-import { SimpleDialogComponent } from '../dialog/simple-dialog/simple-dialog.component';
+// import { NgxGalleryImage } from 'ngx-gallery';
 import { PageTitleService } from './page-title.service';
 import { NotFoundError } from '../common/errors/not-found-error';
 import { Router } from '@angular/router';
 import { AppSettings } from './app-settings';
 import { AnalyticsService } from './analytics.service';
+import { MatDialog } from '@angular/material/dialog';
+import { BasicDialogComponent } from '../dialog/basic-dialog/basic-dialog.component';
+import { NgxGalleryImage } from '@kolkov/ngx-gallery';
 
 @Injectable()
 export class MusicService {
@@ -35,6 +35,7 @@ export class MusicService {
   trackDuration: number;
   trackPositionText: string;
   trackDurationText: string;
+  error: string;
 
   activeMobilePanel: String;
 
@@ -42,13 +43,14 @@ export class MusicService {
 
   downloadingTrackIndex: number;
 
+  progress: number;
 
-  constructor(private modsParserService: ModsParserService,
-    private modalService: MzModalService,
+  constructor(
     private router: Router,
     private appSettings: AppSettings,
     private pageTitle: PageTitleService,
     public analytics: AnalyticsService,
+    private dialog: MatDialog,
     private localStorageService: LocalStorageService,
     private krameriusApiService: KrameriusApiService) {
   }
@@ -110,7 +112,7 @@ export class MusicService {
       this.krameriusApiService.getChildren(unit['uuid']).subscribe((tracks) => {
         for (const track of tracks) {
           if (track['model'] === 'track') {
-            this.tracks.push(new Track(track['pid'], track['title'], unit, track['policy'] === 'public'));
+            this.tracks.push(new Track(track['pid'], track['title'], track['length'], unit, track['policy'] === 'public'));
           }
         }
         this.soundUnitIndex += 1;
@@ -170,8 +172,10 @@ export class MusicService {
     this.trackDuration = -1;
     this.trackPositionText = '';
     this.trackDurationText = '';
+    this.progress = 0;
     this.canPlay = false;
     this.playing = false;
+    this.error = null;
     if (!track) {
       return;
     }
@@ -187,6 +191,9 @@ export class MusicService {
     this.audio.ontimeupdate = () => {
       this.trackPosition = Math.round(this.audio.currentTime);
       this.trackPositionText = this.formatTime(this.trackPosition);
+      if (this.trackDuration) {
+        this.progress = this.trackPosition / this.trackDuration;
+      }
     };
     this.audio.onloadedmetadata = () => {
       this.trackDuration = Math.round(this.audio.duration);
@@ -203,6 +210,16 @@ export class MusicService {
         this.playTrack();
       }
     };
+    this.audio.onerror = (er: any) => {
+      this.canPlay = false;
+      console.log('onError', er);
+      if (!track.isPublic) {
+        this.error = 'inaccessible_track';
+      } else {
+        this.error = 'unknown_error';
+      }
+    };
+
   }
 
 
@@ -215,11 +232,11 @@ export class MusicService {
         return;
     }
     if (!track.isPublic) {
-      this.modalService.open(SimpleDialogComponent, {
+      this.dialog.open(BasicDialogComponent, { data: {
         title: 'common.warning',
         message: 'music.inaccessible_track',
         button: 'common.close'
-      });
+    }, autoFocus: false });
       return;
     }
     this.downloadedTrack = track;
@@ -256,8 +273,8 @@ export class MusicService {
     }
   }
 
-  changeTrackPosition(value: number) {
-    this.audio.currentTime = value;
+  changeProgress(progress: number) {
+    this.audio.currentTime = progress * this.trackDuration;
   }
 
   getSoundUnitImageUrl(): string {
@@ -275,6 +292,12 @@ export class MusicService {
       return this.metadata.authors[0].name;
     }
     return '';
+  }
+
+  getAlbumDate(): string {
+    if (this.metadata.publishers && this.metadata.publishers.length > 0) {
+      return this.metadata.publishers[0].date
+    }
   }
 
 

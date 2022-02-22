@@ -1,18 +1,21 @@
 import { SearchService } from './../../services/search.service';
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CollectionService } from '../../services/collection.service';
 import { AppSettings } from '../../services/app-settings';
 import { AnalyticsService } from '../../services/analytics.service';
 import { LicenceService } from '../../services/licence.service';
-import { MzModalService } from 'ngx-materialize';
-import { DialogLicencesComponent } from '../../dialog/dialog-licences/dialog-licences.component';
+import { MatDialog } from '@angular/material/dialog';
+import { LicenceDialogComponent } from '../../dialog/licence-dialog/licence-dialog.component';
 
 @Component({
   selector: 'app-search-filters',
-  templateUrl: './search-filters.component.html'
+  templateUrl: './search-filters.component.html',
+  styleUrls: ['./search-filters.component.scss']
 })
 export class SearchFiltersComponent implements OnInit {
-  @Input() collapsedFilter: boolean;
+
+
+  collapsedFilter = true;
 
   yearFrom: number;
   yearTo: number;
@@ -23,7 +26,7 @@ export class SearchFiltersComponent implements OnInit {
               public licences: LicenceService,
               public analytics: AnalyticsService,
               public settings: AppSettings,
-              private modalService: MzModalService) {
+              private dialog: MatDialog) {
   }
 
   ngOnInit() {
@@ -33,7 +36,7 @@ export class SearchFiltersComponent implements OnInit {
   }
 
   showLicenceDialog(licence: String) {
-    this.modalService.open(DialogLicencesComponent, { licences: [licence] });
+    this.dialog.open(LicenceDialogComponent, { data: { licences: [licence] }, autoFocus: false });
   }
 
   onYearFromValueChanged() {

@@ -9,18 +9,16 @@ app-root {
 }
 
 app-root {
-  main {
+  .app-wrapper {
     overflow: hidden;
     width: 100%;
-    height: calc(100% - #{$navbar-height});
+    height: calc(100% - 69px);
     
     // common behavior
     app-search,
     app-browse,
     app-periodical,
     app-music,
-    //app-book,
-    .app-book-wrapper,
     app-home {
       width: 100%;
       height: 100%;
@@ -36,88 +34,7 @@ app-root {
       height: 100%;
       z-index: 10;
       background-color: $app-grey-l-5;
-      @include set-border(right, 1, solid, $app-grey-l-2);
-    }
-
-
-    // libraries
-    app-libraries {
-      .app-content-wrapper {
-        flex: 1;
-        height: 100%;
-        overflow: auto;
-        background-color: $app-grey-l-4;
-      }
-    }
-    
-    // home
-    app-home {
-      .app-content-wrapper {
-        flex: 1;
-        height: 100%;
-        overflow: auto;
-        
-        @import "styles/app-home";
-      }
-    }
-    
-    // help
-    app-help {
-      @import "styles/app-help";
-    }
-
-    // about, faq
-    app-about, app-faq {
-      @import "styles/app-about";
-    }
-    
-    // search
-    app-search {
-      @import "styles/app-search-count";
-      @import "styles/app-search-filters-used";
-      @import "styles/app-search-filters";
-      .app-search-wrapper {
-        flex: 1;
-        height: 100%;
-        background-color: color("shades", "white");
-
-        @import "styles/app-search-toolbar";
-        @import "styles/app-search-chart-bar";
-        @import "styles/app-search-calendar";
-        @import "styles/app-search-results";
-        @import "styles/app-map-browse";
-      }
-    }
-
-    // browse
-    app-browse {
-      @import "styles/app-search-count";
-      @import "styles/app-browse-search";
-      @import "styles/app-search-filters";
-      .app-browse-wrapper {
-        flex: 1;
-        height: 100%;
-        background-color: color("shades", "white");
-
-        @import "styles/app-browse-toolbar";
-        @import "styles/app-browse-results";
-      }
-    }
-
-    // collections
-    app-collections {
-      overflow: auto;
-      display: block;
-      height: 100%;
-      background-color: $app-grey-l-4;
-      .app-collections-wrapper {
-        padding: 1rem 0.5rem 0.5rem;
-        @media (min-width: 1200px) {
-          display: grid;
-          grid-template-columns: repeat(2, 50%);
-        }
-      }
-      @import "styles/app-collection";
+      border-right: 1px solid $app-grey-l-2;
     }
     
     // book
@@ -126,35 +43,64 @@ app-root {
       height: 100%;
       width: 100%;
       position: relative;
-      
-      @import "styles/app-book-toolbar";
-      .app-book-wrapper {
-        @media #{$small-and-down} {
-          height: calc(100% - #{$app-toolbar-height});
-        }
-        
-        @import "styles/app-book-toolbar";
-        @import "styles/app-search-count";
-        @import "styles/app-viewer";
-        @import "styles/app-pdf-viewer";
-        @import "styles/app-viewer-controls";      
-        @import "styles/app-navigation";
-        @import "styles/app-metadata";
-      }
-    }
-    
-    // periodical
-    app-periodical  {
-      @import "styles/app-search-filters";
-      @import "styles/app-periodical-filters";
-      @import "styles/app-periodical-content";
-      @import "styles/app-metadata";
     }
 
-    // music
-    app-music  {
-      @import "styles/app-music-player";
-      @import "styles/app-metadata";
+    app-metadata {
+      margin-left: auto;
+      transition: margin-right 0.3s;
+      border-left: 1px solid $app-grey-l-2;
+      &.app-panel-hidden {
+        margin-right: -$app-side-col-width;
+        overflow: hidden;
+      }
+      @media #{$medium-and-down} {
+        &.app-book-metadata {
+          &.app-panel-mobile-hidden {
+            margin-right: -$app-side-col-width;
+            transition: margin-right 0.0s;
+            overflow: hidden;
+          }
+          &.app-panel-hidden {
+            margin-right: 0;
+            overflow: inherit;
+          }
+        }
+      }
+      @media #{$small-and-down} {
+        &:not(.app-nested) {
+          position: absolute;
+          width: 100%;
+          top: calc(#{$navbar-height} + #{$app-toolbar-height});
+          left: 0;
+          border: 0;
+          height: calc(#{$app-mobile-panel-height} - #{$navbar-height} - #{$app-toolbar-height});
+          box-shadow: 0 5px 10px rgba(0, 0, 0, 0.25);
+          display: block;
+          z-index: 950;
+        }
+        &.app-panel-mobile-hidden {
+          display: none;
+        }
+        &.app-book-metadata {
+          top: $app-toolbar-height;
+          height: calc(#{$app-mobile-panel-height} - #{$app-toolbar-height});
+        }
+      }
+      &.app-nested {
+        width: auto;
+        margin: 5px 0 20px;
+        border-left: 5px solid $app-grey-l-2;
+        display: block;
+        .app-metadata-wrapper {
+          overflow: unset;
+          .app-metadata-content {
+            padding: 8px 0 0 8px;
+            margin-bottom: -10px;
+          }
+        }
+      }
     }
+
   }
+
 }

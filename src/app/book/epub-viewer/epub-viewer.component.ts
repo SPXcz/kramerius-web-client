@@ -9,11 +9,12 @@ import { Author, Metadata, Publisher, TitleInfo } from '../../model/metadata.mod
 
 @Component({
   selector: 'app-epub-viewer',
-  templateUrl: './epub-viewer.component.html'
+  templateUrl: './epub-viewer.component.html',
+  styleUrls: ['./epub-viewer.component.scss']
 })
 export class EpubViewerComponent implements  OnInit, OnDestroy {
 
-  @ViewChild('epubViewer') epubViewer: AngularEpubViewerComponent;
+  @ViewChild('epubViewer', { static: true }) epubViewer: AngularEpubViewerComponent;
 
   private viewerActionsSubscription: Subscription;
 
@@ -22,7 +23,8 @@ export class EpubViewerComponent implements  OnInit, OnDestroy {
   private intervalSubscription: Subscription;
 
   constructor(public epub: EpubService, 
-    public controlsService: ViewerControlsService, private bookService: BookService) {
+    public controlsService: ViewerControlsService, 
+    public bookService: BookService) {
   }
 
   ngOnInit() {
@@ -98,7 +100,6 @@ export class EpubViewerComponent implements  OnInit, OnDestroy {
   }
 
   onMetadataLoaded(metadata: any) {
-    console.log('onMetadataLoaded', metadata);
     const m = new Metadata();
 
 

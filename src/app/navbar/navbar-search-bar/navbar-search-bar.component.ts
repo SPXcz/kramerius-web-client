@@ -6,11 +6,12 @@ import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { AppState } from './../../app.state';
 import { AnalyticsService } from '../../services/analytics.service';
 import { CompleterCmp } from 'ng2-completer';
-import { Translator } from 'angular-translator';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-navbar-search-bar',
-  templateUrl: './navbar-search-bar.component.html'
+  templateUrl: './navbar-search-bar.component.html',
+  styleUrls: ['./navbar-search-bar.component.scss']
 })
 export class NavbarSearchBarComponent implements OnInit {
 
@@ -19,13 +20,13 @@ export class NavbarSearchBarComponent implements OnInit {
 
   searchStr: string;
 
-  @ViewChild('completer') completer: CompleterCmp;
+  @ViewChild('completer', { static: true }) completer: CompleterCmp;
 
   constructor(
     public router: Router,
     private route: ActivatedRoute,
     private state: AppState,
-    public translator: Translator,
+    private translate: TranslateService,
     public analytics: AnalyticsService,
     private localStorageService: LocalStorageService,
     private searchService: SearchService,
@@ -70,9 +71,9 @@ export class NavbarSearchBarComponent implements OnInit {
   getPlaceholder(): string {
     if (!this.state.atSearchScreen()) {
       if (this.localStorageService.publicFilterChecked()) {
-        return String(this.translator.instant('searchbar.main.public'));
+        return String(this.translate.instant('searchbar.main.public'));
       } else {
-        return String(this.translator.instant('searchbar.main.all'));
+        return String(this.translate.instant('searchbar.main.all'));
       }
     }
     return this.searchService.buildPlaceholderText();
