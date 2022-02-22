@@ -2,14 +2,16 @@ import { ViewerControlsService } from '../services/viewer-controls.service';
 import { BookService } from './../services/book.service';
 import { ActivatedRoute } from '@angular/router';
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
-import { combineLatest } from 'rxjs/observable/combineLatest';
+import { combineLatest } from 'rxjs';
 import { AnalyticsService } from '../services/analytics.service';
 import { PdfService } from '../services/pdf.service';
 import { EpubService } from '../services/epub.service';
 
 @Component({
   selector: 'app-book',
-  templateUrl: './book.component.html'
+  templateUrl: './book.component.html',
+  styleUrls: ['./book.component.scss']
+
 })
 export class BookComponent implements OnInit, OnDestroy {
 

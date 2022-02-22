@@ -5,11 +5,12 @@ import { AppSettings } from '../../services/app-settings';
 import { KrameriusInfoService } from '../../services/kramerius-info.service';
 import { interval, Subscription } from 'rxjs';
 import { PdfService } from '../../services/pdf.service';
-import { PdfViewerComponent } from 'ng2-pdf-viewer';
+import { PDFDocumentProxy, PdfViewerComponent } from 'ng2-pdf-viewer';
 
 @Component({
   selector: 'app-pdf-viewer2',
-  templateUrl: './pdf-viewer2.component.html'
+  templateUrl: './pdf-viewer2.component.html',
+  styleUrls: ['./pdf-viewer2.component.scss']
 })
 export class PdfViewer2Component implements  OnInit {
 
@@ -54,8 +55,7 @@ export class PdfViewer2Component implements  OnInit {
     }
   }
 
-  afterLoadComplete(pdfData: any) {
-    console.log('afterLoadComplete', pdfData);
+  afterLoadComplete(pdfData: PDFDocumentProxy) {
     this.pdf.init(pdfData, this.pdfComponent);
     this.rotation = 0;
     this.pdf.zoom = 1;

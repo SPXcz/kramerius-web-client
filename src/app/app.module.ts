@@ -1,7 +1,3 @@
-import { DialogPdfGeneratorComponent } from './dialog/dialog-pdf-generator/dialog-pdf-generator.component';
-import { DialogCitationComponent } from './dialog/dialog-citation/dialog-citation.component';
-import { AuthService } from './services/auth.service';
-import { SimpleDialogComponent } from './dialog/simple-dialog/simple-dialog.component';
 import { AppSettings } from './services/app-settings';
 import { PeriodicalFulltextItemComponent } from './periodical/periodical-content/periodical-fulltext-layout/periodical-fulltext-item/periodical-fulltext-item.component';
 import { PeriodicalFulltextLayoutComponent } from './periodical/periodical-content/periodical-fulltext-layout/periodical-fulltext-layout.component';
@@ -10,8 +6,6 @@ import { BookSearchComponent } from './book/book-search/book-search.component';
 import { AltoService } from './services/alto-service';
 import { CollectionService } from './services/collection.service';
 import { HistoryService } from './services/history.service';
-import { DialogShareComponent } from './dialog/dialog-share/dialog-share.component';
-import { DialogPdfComponent } from './dialog/dialog-pdf/dialog-pdf.component';
 import { BookControlsComponent } from './book/book-controls/book-controls.component';
 import { BrowseToolbarComponent } from './browse/browse-toolbar/browse-toolbar.component';
 import { AlertComponent } from './shared/alert/alert.component';
@@ -38,8 +32,7 @@ import { ModsParserService } from './services/mods-parser.service';
 import { BookService } from './services/book.service';
 import { KrameriusApiService } from './services/kramerius-api.service';
 import { BrowserModule, Title } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
-import { TranslatorModule } from 'angular-translator';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { ClipboardModule } from 'ngx-clipboard';
@@ -52,7 +45,6 @@ import { ViewerComponent } from './book/viewer/viewer.component';
 import { MatomoModule } from 'ngx-matomo';
 
 import { BookComponent } from './book/book.component';
-import { HelpComponent } from './help/help.component';
 import { HomeComponent } from './home/home.component';
 import { BrowseComponent } from './browse/browse.component';
 import { NavigationComponent } from './book/navigation/navigation.component';
@@ -69,12 +61,9 @@ import { SearchCountComponent } from './search/search-count/search-count.compone
 import { SearchToolbarComponent } from './search/search-toolbar/search-toolbar.component';
 import { HomeSearchBarComponent } from './home/home-search-bar/home-search-bar.component';
 import { NavbarSearchBarComponent } from './navbar/navbar-search-bar/navbar-search-bar.component';
-import { SearchChartBarComponent } from './search/search-chart-bar/search-chart-bar.component';
-import { SearchCalendarComponent } from './search/search-calendar/search-calendar.component';
 import { LazyLoadImageModule, intersectionObserverPreset } from 'ng-lazyload-image';
 import { BrowseFiltersComponent } from './browse/browse-filters/browse-filters.component';
-import { DialogOcrComponent } from './dialog/dialog-ocr/dialog-ocr.component';
-import { LogoComponent } from './logo/logo.component';
+import { LogoComponent } from './navbar/logo/logo.component';
 import { PersistentLinkComponent } from './persistent-link/persistent-link.component';
 import { PeriodicalService } from './services/periodical.service';
 import { BrowseSearchComponent } from './browse/browse-search/browse-search.component';
@@ -86,19 +75,15 @@ import { MusicControlsComponent } from './music/music-player/music-controls/musi
 import { BookToolbarComponent } from './book/book-toolbar/book-toolbar.component';
 import { MusicToolbarComponent } from './music/music-player/music-toolbar/music-toolbar.component';
 
-import { PdfViewerComponent } from './book/pdf-viewer/pdf-viewer.component';
 import { PeriodicalCountComponent } from './periodical/periodical-filters/periodical-count/periodical-count.component';
 import { PeriodicalSearchComponent } from './periodical/periodical-filters/periodical-search/periodical-search.component';
 import { PeriodicalFiltersComponent } from './periodical/periodical-filters/periodical-filters.component';
 
-import { NgxGalleryModule } from 'ngx-gallery';
-import { MzButtonModule, MzInputModule, MzModalModule, MzNavbarModule, MzIconModule, MzRadioButtonModule, MzIconMdiModule, MzTooltipModule, MzSidenavModule, MzSpinnerModule, MzBadgeModule, MzTabModule, MzCollapsibleModule, MzCollectionModule, MzCardModule, MzDropdownModule, MzCheckboxModule, MzDatepickerModule, MzToastModule } from 'ngx-materialize';
-import { DialogAuthosComponent } from './dialog/dialog-authors/dialog-authors.component';
 import { CollectionsComponent } from './collections/collections.component';
 import { AppRoutingModule } from './app-routing.module';
-import { HomeLogoComponent } from './home-logo/home-logo.component';
+import { HomeLogoComponent } from './home/home-logo/home-logo.component';
 import { HttpRequestCache } from './services/http-request-cache.service';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule, HttpClient, HttpClientJsonpModule } from '@angular/common/http';
 import { CachingInterceptor } from './services/caching-interceptor.service';
 import { PageTitleService } from './services/page-title.service';
 import { NotFoundComponent } from './not-found/not-found.component';
@@ -109,31 +94,22 @@ import { CookieService } from 'ngx-cookie-service';
 import { ShareService } from './services/share.service';
 import { AboutComponent } from './about/about.component';
 import { AnalyticsService } from './services/analytics.service';
-import { DatepickerModule } from './datepicker';
 import { HomeFooterComponent } from './home/home-footer/home-footer.component';
 import { KrameriusInfoService } from './services/kramerius-info.service';
-import { AngularTokenModule } from 'angular-token';
-import { environment } from '../environments/environment';
 import { LoginComponent } from './login/login.component';
 import { DocumentSearchService } from './services/document-search.service';
-
-import { AgmCoreModule } from '@agm/core';
-
 
 import { HighlightModule } from 'ngx-highlightjs';
 import xml from 'highlight.js/lib/languages/xml';
 import json from 'highlight.js/lib/languages/json';
-import { DialogAdminMetadataComponent } from './dialog/dialog-admin-metadata/dialog-admin-metadata.component';
 import { MapBrowseComponent } from './map/browse/map-browse.component';
 import { CollectionComponent } from './collections/collection/collection.component';
 import { IiifService } from './services/iiif.service';
 import { ZoomifyService } from './services/zoomify.service';
 import { LoggerService } from './services/logger.service';
-import { DialogAdvancedSearchComponent } from './dialog/dialog-advanced-search/dialog-advanced-search.component';
 import { LandingComponent } from './landing/landing.component';
 import { FaqComponent } from './faq/faq.component';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
-import { DialogAdminComponent } from './dialog/dialog-admin/dialog-admin.component';
 import { AdminApiService } from './services/admin-api.service';
 import { NavigationSnippetComponent } from './book/navigation/navigation-snippet/navigation-snippet.component';
 import { NavigationItemComponent } from './book/navigation/navigation-item/navigation-item.component';
@@ -142,13 +118,12 @@ import { SignpostLibrariesComponent } from './signpost/libraries/libraries.compo
 import { SignpostFooterComponent } from './signpost/footer/footer.component';
 import { SignpostHeaderComponent } from './signpost/header/header.component';
 import { SignpostHelpComponent } from './signpost/help/help.component';
-import { AdminCollectionsComponent } from './dialog/dialog-admin/admin-collections/admin-collections.component';
-import { AdminAccessibilityComponent } from './dialog/dialog-admin/admin-accessibility/admin-accessibility.component';
-import { AdminReindexationComponent } from './dialog/dialog-admin/admin-reindexation/admin-reindexation.component';
-import { AdminReprePageComponent } from './dialog/dialog-admin/admin-reprepage/admin-reprepage.component';
+import { AdminCollectionsComponent } from './dialog/admin-dialog/admin-collections/admin-collections.component';
+import { AdminAccessibilityComponent } from './dialog/admin-dialog/admin-accessibility/admin-accessibility.component';
+import { AdminReindexationComponent } from './dialog/admin-dialog/admin-reindexation/admin-reindexation.component';
+import { AdminReprePageComponent } from './dialog/admin-dialog/admin-reprepage/admin-reprepage.component';
 import { LicenceService } from './services/licence.service';
 import { LicenceMessagesComponent } from './shared/licence-messages/licence-messages.component';
-import { DialogLicencesComponent } from './dialog/dialog-licences/dialog-licences.component';
 import { PeriodicalUnitLayoutComponent } from './periodical/periodical-content/periodical-unit-layout/periodical-unit-layout.component';
 import { PdfViewer2Component } from './book/pdf-viewer2/pdf-viewer2.component';
 import { PdfViewerModule } from 'ng2-pdf-viewer';
@@ -158,6 +133,23 @@ import { EpubViewerComponent } from './book/epub-viewer/epub-viewer.component';
 import { EpubService } from './services/epub.service';
 import { CitationService } from './services/citation.service';
 import { AuthInterceptor } from './services/auth-interceptor.service';
+import { MaterialModule } from './material.module';
+import { ShareDialogComponent } from './dialog/share-dialog/share-dialog.component';
+import { PdfDialogComponent } from './dialog/pdf-dialog/pdf-dialog.component';
+import { BasicDialogComponent } from './dialog/basic-dialog/basic-dialog.component';
+import { OcrDialogComponent } from './dialog/ocr-dialog/ocr-dialog.component';
+import { AuthorsDialogComponent } from './dialog/authors-dialog/authors-dialog.component';
+import { CitationDialogComponent } from './dialog/citation-dialog/citation-dialog.component';
+import { MetadataDialogComponent } from './dialog/metadata-dialog/metadata-dialog.component';
+import { LicenceDialogComponent } from './dialog/licence-dialog/licence-dialog.component';
+import { AdminDialogComponent } from './dialog/admin-dialog/admin-dialog.component';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { PluralPipe } from './pipes/plural.pipe';
+import { NgSlimScrollModule } from 'ngx-slimscroll';
+import { DatepickerComponent } from './datepicker/datepicker.component';
+import { NgxGalleryModule } from '@kolkov/ngx-gallery';
+import { GoogleMapsModule } from '@angular/google-maps';
 
 declare var APP_GLOBAL: any;
 
@@ -168,13 +160,23 @@ export function hljsLanguages() {
   ];
 }
 
+export function createTranslateLoader(http: HttpClient) {
+  return new TranslateHttpLoader(http, './assets/i18n/', '.json?v2.3.2');
+}
+
+export function appInitializerFactory(translate: TranslateService) {
+  return () => {
+    const lang = localStorage.getItem('lang') || APP_GLOBAL.defaultLanguage || 'cs';
+    return translate.use(lang).toPromise();
+  };
+}
+
 @NgModule({
   declarations: [
     AppComponent,
     NavbarComponent,
     ViewerComponent,
     BookComponent,
-    HelpComponent,
     AboutComponent,
     HomeComponent,
     BrowseComponent,
@@ -202,8 +204,6 @@ export function hljsLanguages() {
     ViewerControlsComponent,
     HomeSearchBarComponent,
     NavbarSearchBarComponent,
-    SearchChartBarComponent,
-    SearchCalendarComponent,
     BrowseFiltersComponent,
     BrowseCountComponent,
     BrowseResultsComponent,
@@ -211,12 +211,6 @@ export function hljsLanguages() {
     PaginatorComponent,
     AlertComponent,
     BookControlsComponent,
-    DialogOcrComponent,
-    DialogPdfComponent,
-    DialogPdfGeneratorComponent,
-    DialogShareComponent,
-    DialogCitationComponent,
-    DialogAuthosComponent,
     LogoComponent,
     HomeLogoComponent,
     BookSearchComponent,
@@ -229,12 +223,10 @@ export function hljsLanguages() {
     MusicControlsComponent,
     BookToolbarComponent,
     MusicToolbarComponent,
-    PdfViewerComponent,
     PdfViewer2Component,
     PeriodicalCountComponent,
     PeriodicalSearchComponent,
     PeriodicalFiltersComponent,
-    SimpleDialogComponent,
     CollectionsComponent,
     CollectionComponent,
     NotFoundComponent,
@@ -244,12 +236,9 @@ export function hljsLanguages() {
     FaqComponent,
     HomeFooterComponent,
     LoginComponent,
-    DialogAdminMetadataComponent,
     MapBrowseComponent,
-    DialogAdvancedSearchComponent,
     LandingComponent,
     SafeHtmlPipe,
-    DialogAdminComponent,
     SignpostComponent,
     SignpostLibrariesComponent,
     SignpostFooterComponent,
@@ -260,78 +249,46 @@ export function hljsLanguages() {
     AdminReindexationComponent,
     AdminReprePageComponent,
     LicenceMessagesComponent,
-    DialogLicencesComponent,
     PeriodicalUnitLayoutComponent,
-    EpubViewerComponent
-  ],
-  entryComponents: [
-    DialogOcrComponent,
-    DialogPdfComponent,
-    DialogShareComponent,
-    DialogCitationComponent,
-    SimpleDialogComponent,
-    DialogAuthosComponent,
-    DialogPdfGeneratorComponent,
-    DialogAdminMetadataComponent,
-    DialogAdvancedSearchComponent,
-    DialogAdminComponent,
-    DialogLicencesComponent
+    EpubViewerComponent,
+    ShareDialogComponent,
+    PdfDialogComponent,
+    BasicDialogComponent,
+    OcrDialogComponent,
+    AuthorsDialogComponent,
+    CitationDialogComponent,
+    MetadataDialogComponent,
+    LicenceDialogComponent,
+    AdminDialogComponent,
+    PluralPipe,
+    DatepickerComponent
   ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
+    HttpClientJsonpModule,
     FormsModule,
-    DatepickerModule,
+    GoogleMapsModule,
+    NgSlimScrollModule,
+    NgxGalleryModule,
     Ng2CompleterModule,
     MatomoModule,
+    MaterialModule,
     LazyLoadImageModule.forRoot({
       preset: intersectionObserverPreset
     }),
     AppRoutingModule,
-    NgxGalleryModule,
-    TranslatorModule.forRoot({
-      providedLanguages: AppSettings.langs,
-      defaultLanguage: 'cs',
-      loaderOptions: {
-        path: 'assets/i18n/{{language}}.json?v2.2.0'
-      }
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: (createTranslateLoader),
+        deps: [HttpClient]
+    }
     }),
     PdfViewerModule,
     AngularEpubViewerModule,
-    MzButtonModule,
-    MzInputModule,
-    MzModalModule,
-    MzNavbarModule,
-    MzIconModule,
-    MzIconMdiModule,
-    MzTooltipModule,
-    MzSidenavModule,
-    MzSpinnerModule,
-    MzBadgeModule,
-    MzTabModule,
-    MzCollapsibleModule,
-    MzCollectionModule,
-    MzCardModule,
-    MzToastModule,
-    MzDropdownModule,
-    MzCheckboxModule,
-    MzRadioButtonModule,
-    MzDatepickerModule,
     ClipboardModule,
-    AngularTokenModule.forRoot({
-      apiBase: environment.cloudApiBase,
-      oAuthBase: environment.cloudApiBase,
-      oAuthCallbackPath: 'omniauth',
-      oAuthPaths: {
-        google: 'auth/google_oauth2',
-        facebook: 'auth/facebook'
-      },
-      oAuthWindowType: 'newWindow'
-    }),
-    AgmCoreModule.forRoot({
-      apiKey: environment.googleMapsApiKey
-    }),
     HighlightModule.forRoot({
       languages: hljsLanguages
     }),
@@ -363,7 +320,6 @@ export function hljsLanguages() {
     AnalyticsService,
     KrameriusInfoService,
     CitationService,
-    AngularTokenModule,
     IiifService,
     ZoomifyService,
     LoggerService,
@@ -371,6 +327,12 @@ export function hljsLanguages() {
     AdminApiService,
     PdfService,
     EpubService,
+    {
+      provide: APP_INITIALIZER,
+      useFactory: appInitializerFactory,
+      deps: [ TranslateService ],
+      multi: true
+    },
     { provide: HTTP_INTERCEPTORS, useClass: CachingInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
   ],

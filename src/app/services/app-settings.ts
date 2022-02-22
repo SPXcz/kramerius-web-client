@@ -1,7 +1,5 @@
-import { CollectionService } from './collection.service';
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
-import { LicenceService } from './licence.service';
 
 declare var APP_GLOBAL: any;
 
@@ -35,12 +33,17 @@ export class AppSettings {
   public variables: any;
 
   public static langs = ['cs', 'en', 'de', 'sk'];
+  public licences: any;
   public ga = APP_GLOBAL.ga;
   public matomo = APP_GLOBAL.matomo;
   public maxOmnibusParts: number;
   public maxOmnibusPages: number;
 
+  public k7: boolean;
+
+
   public share_url = APP_GLOBAL.share_url;
+  public googleMapsApiKey = APP_GLOBAL.googleMapsApiKey;
   public enablePeriodicalVolumesYearsLayout = APP_GLOBAL.enablePeriodicalVolumesYearsLayout;
   public enablePeriodicalIsssuesCalendarLayout = APP_GLOBAL.enablePeriodicalIsssuesCalendarLayout;
   public defaultPeriodicalVolumesLayout = APP_GLOBAL.defaultPeriodicalVolumesLayout;
@@ -55,7 +58,7 @@ export class AppSettings {
   public footer : [string, string] = APP_GLOBAL.footer;
   public krameriusLogin = !!APP_GLOBAL.krameriusLogin;
   public landingPage = !!APP_GLOBAL.landingPage;
-  public k7 = !!APP_GLOBAL.k7;
+  public languages: string[] = APP_GLOBAL.languages || ['cs', 'en', 'de', 'sk'];
 
   public actions = {
     'pdf': AppSettings.action('pdf', 'always'), 
@@ -75,7 +78,7 @@ export class AppSettings {
   public krameriusList: KrameriusData[];
   public krameriusVsList = APP_GLOBAL.krameriusVsList;
 
-  constructor(private collectionsService: CollectionService, private licenceService: LicenceService) {
+  constructor() {
     this.krameriusList = [];
     for (const k of APP_GLOBAL.krameriusList) {
       this.krameriusList.push(k);
@@ -110,8 +113,6 @@ export class AppSettings {
   }
 
   public assignKramerius(kramerius: KrameriusData) {
-    this.collectionsService.clear();
-    this.licenceService.assignLicences(kramerius.licences);
     this.code = kramerius.code;
     this.title = kramerius.title;
     this.subtitle = kramerius.subtitle;
@@ -128,9 +129,11 @@ export class AppSettings {
     this.originLink = kramerius.originLink;
     this.customRightMessage = kramerius.customRightMessage;
     this.mapSearch = !!kramerius.mapSearch;
+    this.licences = kramerius.licences;
     this.hiddenLocks = !!kramerius.hiddenLocks;
     this.maxOmnibusPages = kramerius.maxOmnibusPages || 0;
     this.maxOmnibusParts = kramerius.maxOmnibusParts || 0;
+    this.k7 = !!kramerius.k7;
     this.currentCode = this.code;
     this.localAuth = kramerius.localAuth || this.auth ;
     this.variables = kramerius.variables || {};
@@ -172,6 +175,14 @@ export class AppSettings {
     return this.schemaVersion === '1.0';
   }
 
+  getToken() {
+    return localStorage.getItem('auth.token.' + this.code);
+  }
+
+  setToken(token: string) {
+    return localStorage.setItem('auth.token.' + this.code, token);
+  }
+
   private static action(action: string, defaultValue: string): string {
     if (!APP_GLOBAL.actions) {
       return defaultValue;
@@ -205,4 +216,5 @@ interface KrameriusData {
   maxOmnibusPages: number;
   localAuth: any;
   variables: any;
+  k7: boolean;
 }

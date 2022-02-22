@@ -1,26 +1,19 @@
 <div class="row">
   <div class="col s12 m12 l12 offset-xl1 xl11">
-    <div class="app-search-bar-wrapper left-align" [class.app-hover]="searchStr">
+    <div class="app-search-bar-wrapper" [class.app-hover]="searchStr">
       <div class="input-field">
         <ng2-completer #completer (keyup)="onKeyUp($event)" (selected)="onSelected($event)" [(ngModel)]="searchStr" [matchClass]="'highlight'"
         [datasource]="service" [minSearchLength]="1" [inputId]="autocomplete-input" [inputClass]="'autocomplete'" [placeholder]="getPlaceholder()" [inputName]="'autocomplete-input'">
         </ng2-completer>
       </div>
-      <i mz-icon-mdi [icon]="'magnify'" (click)="onMagnifyIconClick()" class="app-cursor-pointer"></i>
-      <i *ngIf="searchStr" mz-icon-mdi [icon]="'close'" (click)="cleanQuery()" class="app-cursor-pointer" mz-tooltip [tooltip]="'searchbar.delete_query' | translate" [position]="'top'"></i>
+      <mat-icon (click)="onMagnifyIconClick()" class="app-button-search">search</mat-icon>
+      <mat-icon *ngIf="searchStr" (click)="cleanQuery()" class="app-button-close" [matTooltip]="'searchbar.delete_query' | translate">close</mat-icon>
     </div>
-    <mz-checkbox-container [class.app-hide-filter]="!appSettings.availableFilter('accessibility')">
-      <input mz-checkbox [(ngModel)]="accessibilityFilter" [label]="'navbar.checkbox_label' | translate" id="checkbox-id" type="checkbox" (change)="onAccessibilityFilterChanged()">
-    </mz-checkbox-container> 
+    <mat-checkbox [class.app-hide-filter]="!appSettings.availableFilter('accessibility')" color="primary" (change)="onAccessibilityFilterChanged()" [(ngModel)]="accessibilityFilter">{{ 'navbar.checkbox_label' | translate }}</mat-checkbox>
   </div>
 </div>
 <div class="row">
   <div class="col s12">
-    <a mz-button (click)="onSearchButtonClick()" class="app-button">
-      <i *ngIf="!searchStr" mz-icon-mdi [icon]="'arrow-right'" [align]="'left'"></i>
-      <i *ngIf="searchStr" mz-icon-mdi [icon]="'magnify'" [align]="'left'"></i>
-      <span *ngIf="!searchStr">{{'home.btn_enter' | translate}}</span>
-      <span *ngIf="searchStr">{{'home.btn_search' | translate}}</span>
-    </a>
+    <button (click)="onSearchButtonClick()" mat-raised-button color="primary">{{ (!!searchStr ? 'home.btn_search' : 'home.btn_enter') | translate }}</button>
   </div>
 </div>

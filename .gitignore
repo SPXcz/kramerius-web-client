@@ -48,3 +48,5 @@ Thumbs.db
 /src/assets/shared
 /local
 /ssl
+
+/deploy.sh

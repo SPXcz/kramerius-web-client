@@ -1,21 +1,22 @@
-import { DialogCitationComponent } from './../dialog/dialog-citation/dialog-citation.component';
-import { DialogAuthosComponent } from './../dialog/dialog-authors/dialog-authors.component';
 import { AppSettings } from './../services/app-settings';
 import { Metadata } from './../model/metadata.model';
 import { Component, OnInit, Input } from '@angular/core';
-import { MzModalService } from 'ngx-materialize';
 import { AnalyticsService } from '../services/analytics.service';
-import { DialogShareComponent } from '../dialog/dialog-share/dialog-share.component';
-import { DialogAdminMetadataComponent } from '../dialog/dialog-admin-metadata/dialog-admin-metadata.component';
-import { DialogAdminComponent } from '../dialog/dialog-admin/dialog-admin.component';
+import { AdminDialogComponent } from '../dialog/admin-dialog/admin-dialog.component';
 import { AuthService } from '../services/auth.service';
 import { LicenceService } from '../services/licence.service';
 import { BookService } from '../services/book.service';
-import { DialogLicencesComponent } from '../dialog/dialog-licences/dialog-licences.component';
+import { ShareDialogComponent } from '../dialog/share-dialog/share-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { AuthorsDialogComponent } from '../dialog/authors-dialog/authors-dialog.component';
+import { CitationDialogComponent } from '../dialog/citation-dialog/citation-dialog.component';
+import { MetadataDialogComponent } from '../dialog/metadata-dialog/metadata-dialog.component';
+import { LicenceDialogComponent } from '../dialog/licence-dialog/licence-dialog.component';
 
 @Component({
   selector: 'app-metadata',
-  templateUrl: './metadata.component.html'
+  templateUrl: './metadata.component.html',
+  styleUrls: ['./metadata.component.scss']
 })
 export class MetadataComponent implements OnInit {
   public controlsEnabled = true;
@@ -28,14 +29,22 @@ export class MetadataComponent implements OnInit {
 
   expand = {}
 
-  constructor(private modalService: MzModalService,
-              public analytics: AnalyticsService,
+  constructor(public analytics: AnalyticsService,
+              private dialog: MatDialog,
               public bookService: BookService,
               public licences: LicenceService,
               public auth: AuthService,
               public settings: AppSettings) { }
 
   ngOnInit() {
+  }
+
+  toHtml(text: string): string {
+    if (!text) {
+      return "";
+    }
+    const html = text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+    return html;
   }
 
   showTitle() {
@@ -55,12 +64,12 @@ export class MetadataComponent implements OnInit {
   }
 
   openAdminActions() {
-    this.modalService.open(DialogAdminComponent, { metadata: this.metadata } );
+    this.dialog.open(AdminDialogComponent, { data: { metadata: this.metadata }, autoFocus: false });
   }
 
   onShowAuthors() {
     this.analytics.sendEvent('metadata', 'authors');
-    this.modalService.open(DialogAuthosComponent, { authors: this.metadata.authors} );
+    this.dialog.open(AuthorsDialogComponent, { data: { authors: this.metadata.authors }, autoFocus: false });
   }
 
   anyLicence(): boolean {
@@ -69,27 +78,28 @@ export class MetadataComponent implements OnInit {
 
   showPrivateDialog() {
     this.analytics.sendEvent('metadata', 'private-dialog');
-    this.modalService.open(DialogLicencesComponent, { licences: this.metadata.licences, full: true });
+    this.dialog.open(LicenceDialogComponent, { data: { licences: this.metadata.licences, full: true }, autoFocus: false });
   }
 
   showLicenceDialog() {
     this.analytics.sendEvent('metadata', 'licence-dialog');
-    this.modalService.open(DialogLicencesComponent, { licences: [this.metadata.licence], full: false });
+    this.dialog.open(LicenceDialogComponent, { data: { licences: [this.metadata.licence], full: false }, autoFocus: false });
   }
 
   onShowCitation() {
     this.analytics.sendEvent('metadata', 'citation');
-    this.modalService.open(DialogCitationComponent, { metadata: this.metadata });
+    this.dialog.open(CitationDialogComponent, { data: { metadata: this.metadata }, autoFocus: false });
   }
 
   onShare() {
     this.analytics.sendEvent('metadata', 'share');
-    this.modalService.open(DialogShareComponent, { metadata: this.metadata });
+      let opts = { metadata: this.metadata };
+      this.dialog.open(ShareDialogComponent, { data: opts, autoFocus: false });
   }
 
   onShowMetadata() {
     this.analytics.sendEvent('metadata', 'admin-metadata');
-    this.modalService.open(DialogAdminMetadataComponent, { metadata: this.metadata } );
+    this.dialog.open(MetadataDialogComponent, { data: { metadata: this.metadata }, autoFocus: false });
   }
 
   private show(action: string): boolean {

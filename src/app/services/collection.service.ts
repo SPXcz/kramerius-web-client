@@ -1,8 +1,7 @@
 import { Collection } from './../model/collection.model';
-import { Translator } from 'angular-translator';
 import { Injectable } from '@angular/core';
-
-//TODO: Predelat toto
+import { TranslateService } from '@ngx-translate/core';
+import { AppSettings } from './app-settings';
 
 @Injectable()
 export class CollectionService {
@@ -10,10 +9,14 @@ export class CollectionService {
     public collections: Collection[];
     private cache = {};
 
-    constructor(private translator: Translator) {
-        this.translator.languageChanged.subscribe(() => {
+    constructor(private translate: TranslateService, private settings: AppSettings) {
+        this.translate.onLangChange.subscribe(() => {
             this.localeChanged();
         });
+        this.settings.kramerius$.subscribe(() =>  {
+                this.clear();
+            }
+        );
     }
 
     public clear() {
@@ -38,6 +41,12 @@ export class CollectionService {
                 if (col.descs) {
                     collection.titleCs = col.descs.cs;
                     collection.titleEn = col.descs.en;
+                    if (collection.titleCs) {
+                        collection.titleCs = collection.titleCs.trim();
+                    }
+                    if (collection.titleEn) {
+                        collection.titleEn = collection.titleEn.trim();
+                    }
                 }
                 if (col.longDescs) {
                     collection.descriptionCs = col.longDescs.cs;
@@ -63,7 +72,7 @@ export class CollectionService {
             return;
         }
         for (const col of this.collections) {
-            if (this.translator.language === 'cs') {
+            if (this.translate.currentLang === 'cs') {
                 col.title = col.titleCs;
                 col.description = col.descriptionCs;
             } else {

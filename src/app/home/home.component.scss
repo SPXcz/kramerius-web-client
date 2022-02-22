@@ -1,0 +1,97 @@
+@import './src/variables.scss';
+
+  .app-content-wrapper {
+    flex: 1;
+    height: 100%;
+    overflow: auto;
+  .home-top {
+    margin-top: 80px;
+    
+    & > .row {
+      &:first-child {
+        margin-bottom: 5px;
+      }
+      &:nth-child(2) {
+        margin-bottom: 10px;
+      }
+      
+      .col {      
+        &.app-desc {
+          font-size: 0.8rem !important;
+          color: $app-grey-l-1;
+          span {
+            display: block;
+            min-height: 8px;
+            color: $app-grey;
+          }
+        }
+      }
+    }
+    
+    // mq
+    @media #{$medium-and-down} {
+      margin-top: 30px;
+    }
+  }
+
+
+  .app-featured {
+    margin-top: 60px;
+    
+    .app-tabs {
+      border-bottom: 1px solid #d2d2d2;
+      position: relative;
+      overflow-x: auto;
+      overflow-y: hidden;
+      height: 48px;
+      width: 100%;
+      background-color: #fff;
+      margin: 0 auto;
+      white-space: nowrap;
+      .app-tab {
+        width: 33.33333333%; 
+        display: inline-block;
+        text-align: center;
+        line-height: 48px;
+        height: 48px;
+        padding: 0;
+        margin: 0;
+        // text-transform: uppercase;
+        cursor: pointer;
+        color: $primary-color;
+        border-bottom: 2px solid transparent;
+        transition: border-bottom 0.4s ease-in-out;
+        &.app-active {
+          border-bottom: 3px solid $primary-color;
+        }
+        &:hover:not(.app-active) {
+          color: $primary-color-light;
+        }
+      }
+    }
+    
+    .app-tab-content {
+      padding: 0.5rem;
+      overflow: hidden;
+      display: block;
+      
+      .col {
+        padding: 0;
+      }
+    }
+
+    // mq
+    @media #{$medium-and-down} {
+      margin-top: 30px;
+    }
+  }
+
+  app-paginator .pagination {
+    margin-top: -10px;
+  }
+
+  .app-footer {
+    overflow: hidden;
+  }
+
+}

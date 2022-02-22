@@ -1,73 +1,13 @@
-// --- ROOT STYLE ---
 
-@import "styles/app-pallete";
-@import "styles/app-color";
+@import './theme.scss';
+@import './variables.scss';
 
-@import "styles/app-variables";
-
-@import "../node_modules/materialize-css/sass/materialize.scss";
-@import "../node_modules/mdi/scss/materialdesignicons.scss";
-
-@import "styles/fontface/roboto-condensed/roboto-condensed-fontface";
-
-@import "styles/app-mixins";
-@import "styles/app-mdi";
-@import "styles/app-alert";
-@import "styles/app-layout";
 @import "styles/app-global";
-@import "styles/app-navbar";
-@import "styles/app-logo";
-@import "styles/app-home-logo";
-@import "styles/app-search-bar";
+@import "styles/app-layout";
+@import "styles/app-dialog";
+@import "styles/app-about";
 @import "styles/app-autocomplete";
 @import "styles/app-ng-datepicker";
-@import "styles/app-document-card";
-@import "styles/app-paginator";
-@import "styles/app-dialog";
-@import "styles/app-dialog-pdf";
-@import "styles/app-dialog-pdf-generator";
-@import "styles/app-dialog-share";
-@import "styles/app-dialog-admin";
-@import "styles/app-dialog-citation";
-@import "styles/app-dialog-metadata";
-@import "styles/app-dialog-admin-metadata";
-@import "styles/app-dialog-advanced-search";
-@import "styles/app-dialog-authors";
-@import "styles/app-dialog-sheetmusic-warning";
-@import "styles/app-dialog-policy";
-@import "styles/app-page-not-found";
-@import "styles/app-login";
 
-
-#app-search-library-dropdown {
-    overflow: auto !important;
-    margin-left: 28px !important;
-    li {
-        transition: none;
-    }
-    .app-search-dropdown-library {
-        .app-library-icon {
-            float: left;
-            margin-right: 10px;
-            width: 24px;
-            margin-left: -2px;
-        }
-        .app-library-name {
-            font-size: 14px;
-            color: #777;
-        }
-        @media only screen and (max-width: 600px) {
-            padding: 10px 0;
-            text-align: center;
-            .app-library-icon {
-                float: none;
-                margin: 0;
-                width: 30px;
-            }
-            .app-library-name {
-                display: none;
-            }
-        }
-
-    }
-}
+@import "styles/materialize/global";
+@import "styles/materialize/grid";

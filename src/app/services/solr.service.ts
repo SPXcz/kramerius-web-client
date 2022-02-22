@@ -287,6 +287,10 @@ export class SolrService {
         "isbn": {
             '1.0': 'isbn',
             '2.0': 'id_isbn'
+        },
+        "track_length": {
+            '1.0': '',
+            '2.0': 'track.length'
         }
     }
 
@@ -363,7 +367,7 @@ export class SolrService {
             q += `,details,${this.field('rels_ext_index')}`;
             q += `&q=${this.field('parent_pid')}:"${parent}"`;
         } else {
-            q += `,${this.field('page_type')},${this.field('page_number')}`;
+            q += `,${this.field('page_type')},${this.field('page_number')},${this.field('track_length')}`;
             q += `&q=${this.field(own ? 'parent_pid' : 'step_parent_pid')}:"${parent}"`;
             q += `&sort=${this.field('rels_ext_index')} asc`;
         }
@@ -495,7 +499,7 @@ export class SolrService {
            + '&facet.limit=' + query.getRows()
            + '&facet.offset=' + query.getStart()
            + '&rows=0';
-        if (query.text) {
+        if (query.textSearch()) {
             const firstWord = query.text.split(" ")[0].trim();
             q += '&facet.contains=' + firstWord + '&facet.contains.ignoreCase=true';
         }
@@ -1381,7 +1385,12 @@ export class SolrService {
             }
             if (k5) {
                 const details = doc['details'];
-                page['index'] = doc[this.field('rels_ext_index')][0] || 0;
+                let idx = 0;
+                const arr = doc[this.field('rels_ext_index')];
+                if (arr && Array.isArray(arr) && arr.length > 0) {
+                    idx = arr[0] || 0;
+                }
+                page['index'] = idx;
                 if (details && details[0]) {
                     const parts = details[0].split('##');
                     if (parts.length >= 1) {
@@ -1394,6 +1403,7 @@ export class SolrService {
             } else {
                 page['type'] = doc[this.field('page_type')] || 'unknown';
                 page['number'] = doc[this.field('page_number')];
+                page['length'] = doc[this.field('track_length')];
             }
             items.push(page);
         }

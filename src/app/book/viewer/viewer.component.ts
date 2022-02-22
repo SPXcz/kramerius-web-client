@@ -2,13 +2,13 @@ import { AppSettings } from './../../services/app-settings';
 import { ViewerControlsService, ViewerActions } from '../../services/viewer-controls.service';
 import { BookService, ViewerData, ViewerImageType } from './../../services/book.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { interval } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { KrameriusInfoService } from '../../services/kramerius-info.service';
 import { KrameriusApiService } from '../../services/kramerius-api.service';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin} from 'rxjs/observable/forkJoin';
+import { forkJoin} from 'rxjs';
 import { IiifService } from '../../services/iiif.service';
 import { ZoomifyService } from '../../services/zoomify.service';
 import { AltoService } from '../../services/alto-service';
@@ -20,7 +20,8 @@ declare var ol: any;
 
 @Component({
   selector: 'app-viewer',
-  templateUrl: './viewer.component.html'
+  templateUrl: './viewer.component.html',
+  styleUrls: ['./viewer.component.scss']
 })
 export class ViewerComponent implements OnInit, OnDestroy {
   
@@ -388,11 +389,11 @@ export class ViewerComponent implements OnInit, OnDestroy {
       rq.push(this.http.get(this.zoomify.properties(url2), { observe: 'response', responseType: 'text' }));
     }
     forkJoin(rq).subscribe((results) => {
-      const p1 = this.zoomify.parseProperties(results[0].body);
+      const p1 = this.zoomify.parseProperties(results[0]['body']);
       w1 = p1.width;
       h1 = p1.height;
       if (url2 && results.length > 1) {
-        const p2 = this.zoomify.parseProperties(results[1].body);
+        const p2 = this.zoomify.parseProperties(results[1]['body']);
         w2 = p2.width;
         h2 = p2.height;
       }
@@ -426,11 +427,11 @@ export class ViewerComponent implements OnInit, OnDestroy {
       rq.push(this.http.get(this.iiif.imageManifest(url2)));
     }
     forkJoin(rq).subscribe((results) => {
-      w1 = results[0].width;
-      h1 = results[0].height;
+      w1 = results[0]['width'];
+      h1 = results[0]['height'];
       if (url2 && results.length > 1) {
-        w2 = results[1].width;
-        h2 = results[1].height;
+        w2 = results[1]['width'];
+        h2 = results[1]['height'];
       }
       this.setDimensions(w1, h1, w2, h2);
       if (url2 && results.length > 1) {
@@ -598,7 +599,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
     const zoomifySource = new ol.source.Zoomify(zoomifyOptions);
     const imageSource = new ol.source.ImageStatic(imageOptions);
 
-    const token = this.locals.getProperty('auth.token');
+    const token = this.settings.getToken();
     if (token) {
       zoomifySource.setTileLoadFunction(this.buildCustomLoader(token));
       imageSource.imageLoadFunction = (this.buildCustomLoader(token));
@@ -634,7 +635,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
       imageSize: [width, height],
       imageExtent: extent
     });
-    const token = this.locals.getProperty('auth.token');
+    const token = this.settings.getToken();
     if (token) {
       source.imageLoadFunction = (this.buildCustomLoader(token));
     }
