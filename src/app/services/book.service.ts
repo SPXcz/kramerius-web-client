@@ -4,8 +4,6 @@ import { Metadata } from './../model/metadata.model';
 import { AltoService } from './alto-service';
 import { LocalStorageService } from './local-storage.service';
 import { NotFoundError } from './../common/errors/not-found-error';
-import { UnauthorizedError } from './../common/errors/unauthorized-error';
-import { AppError } from './../common/errors/app-error';
 import { Observable } from 'rxjs';
 import { Subject } from 'rxjs';
 import { KrameriusApiService } from './kramerius-api.service';
@@ -16,7 +14,6 @@ import { Location } from '@angular/common';
 import { forkJoin} from 'rxjs';
 import { Article } from '../model/article.model';
 import { HistoryService } from './history.service';
-import { DomSanitizer} from '@angular/platform-browser';
 import { PageTitleService } from './page-title.service';
 import { InternalPart } from '../model/internal_part.model';
 import { AnalyticsService } from './analytics.service';
@@ -29,7 +26,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { PdfDialogComponent } from '../dialog/pdf-dialog/pdf-dialog.component';
 import { BasicDialogComponent } from '../dialog/basic-dialog/basic-dialog.component';
 import { OcrDialogComponent } from '../dialog/ocr-dialog/ocr-dialog.component';
-import { TranslateService } from '@ngx-translate/core';
+import { saveAs } from 'file-saver';
+import { PdfService } from './pdf.service';
 
 @Injectable()
 export class BookService {
@@ -56,9 +54,8 @@ export class BookService {
 
     public metadata: Metadata;
 
-    public pdf: string;
-    public pdfPath;
     public isPrivate: boolean;
+    public pageAvailable: boolean;
 
     public articles: Article[];
     public article: Article;
@@ -90,45 +87,15 @@ export class BookService {
         private iiif: IiifService,
         private dialog: MatDialog,
         private logger: LoggerService,
-        private translate: TranslateService,
-        private sanitizer: DomSanitizer,
         private history: HistoryService,
         private router: Router,
+        private pdf: PdfService,
         private bottomSheet: MatBottomSheet,
         private licenceService: LicenceService) {
     }
 
-    private assignPdfPath(uuid: string) {
-        this.viewer = 'pdf';
-        this.publishNewPages(BookPageState.Loading);
-        this.api.getPdfPreviewBlob(uuid).subscribe(() => {
-            this.publishNewPages(BookPageState.Success);
-            if (uuid === null) {
-                this.pdf = null;
-                this.pdfPath = null;
-                return;
-            }
-            this.pdf = this.api.getPdfUrl(uuid);
-            let url = 'assets/pdf/viewer.html?file=' + encodeURIComponent(this.pdf);
-            url += '&lang=' + this.translate.currentLang;
-            if (this.fulltextQuery) {
-                url += '&query=' + this.fulltextQuery;
-            }
-            this.pdfPath = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-        },
-        (error: AppError)  => {
-            this.pdf = null;
-            if (error instanceof UnauthorizedError) {
-                this.publishNewPages(BookPageState.Inaccessible);
-            } else {
-                this.publishNewPages(BookPageState.Failure);
-            }
-            return;
-        });
-    }
-
     init(params: BookParams) {
-        console.log('init', params);
+        // console.log('init', params);
         this.clear();
         this.extraParents = [];
         this.uuid = params.uuid;
@@ -165,7 +132,7 @@ export class BookService {
                 }
                 return;
             }
-            if (item.doctype == 'oldprintomnibusvolume') {
+            if (item.doctype == 'convolute') {
                 const maxPages = this.settings.maxOmnibusPages;
                 const maxParts = this.settings.maxOmnibusParts;
                 if (!!maxPages && !!maxParts) {
@@ -187,7 +154,7 @@ export class BookService {
                     return;
                 }
             }
-            if (item.getParentDoctype() == 'oldprintomnibusvolume') {
+            if (item.getParentDoctype() == 'convolute') {
                 const maxPages = this.settings.maxOmnibusPages;
                 const maxParts = this.settings.maxOmnibusParts;
                 if (!maxPages || !maxParts) {
@@ -224,11 +191,17 @@ export class BookService {
         });
     }
 
-
     setupEpub() {
         this.viewer = 'epub';
         this.activeNavigationTab = 'epubToc';
+        this.doublePageEnabled = this.localStorageService.getProperty(LocalStorageService.DOUBLE_PAGE) === '1';
         this.showNavigationPanel = true;
+    }
+
+    private setupPdf(uuid: string) {
+        this.bookState = BookState.Success;
+        this.viewer = 'pdf';
+        this.pdf.setUrl(this.api.getPdfUrl(uuid));
     }
 
     private getMetadata(item: DocumentItem, params: any) {
@@ -238,8 +211,8 @@ export class BookService {
             this.metadata.assignDocument(item);
             this.analytics.sendEvent('viewer', 'open', this.metadata.getShortTitle());
             this.pageTitle.setTitle(null, this.metadata.getShortTitle());
-            if (item.getParentDoctype() == 'oldprintomnibusvolume') {
-                this.metadata.doctype = 'oldprintomnibusvolume';
+            if (item.getParentDoctype() == 'convolute') {
+                this.metadata.doctype = 'convolute';
             } else if (item.doctype) {
                 if (item.doctype.startsWith('periodical') || item.doctype === 'supplement') {
                     this.metadata.doctype = 'periodical';
@@ -259,16 +232,14 @@ export class BookService {
             } else if (item.doctype === 'periodicalvolume') {
                 this.loadVolume(this.uuid);
                 this.loadVolumes(item.root_uuid, this.uuid);
-            } else if (item.getParentDoctype() == 'oldprintomnibusvolume') {
+            } else if (item.getParentDoctype() == 'convolute') {
                 this.loadOmnibusUnits(item.getParentUuid(), item);
             }
             this.localStorageService.addToVisited(item, this.metadata);
             this.metadata.licences = this.licences;
             this.metadata.licence = this.licence;
             if (item.pdf) {
-                this.showNavigationPanel = true;
-                this.bookState = BookState.Success;
-                this.assignPdfPath(params.uuid);
+                this.setupPdf(params.uuid);
             } else {
                 this.api.getChildren(params.uuid).subscribe(children => {
                     if (children && children.length > 0) {
@@ -477,7 +448,7 @@ export class BookService {
         if (this.internalParts.length > 0) {
             tabs += 1;
         }
-        if (this.metadata.doctype == 'oldprintomnibusvolume' && this.extraParents.length > 0 && !this.fulltextQuery) {
+        if (this.metadata.doctype == 'convolute' && this.extraParents.length > 0 && !this.fulltextQuery) {
             tabs += 1;
         }
         this.navigationTabsCount = tabs;
@@ -488,7 +459,7 @@ export class BookService {
         const pages = [];
         const parents = [];
         for (const p of inputPages) {
-            if (p['model'] === 'supplement' || (doctype == 'oldprintomnibusvolume' && p['model'] != 'oldprintomnibusvolume' && p['model'] != 'page')) {
+            if (p['model'] === 'supplement' || (doctype == 'convolute' && p['model'] != 'convolute' && p['model'] != 'page')) {
                 parents.push(p);
                 this.extraParents.push(p);
             } else {
@@ -552,6 +523,7 @@ export class BookService {
         let currentPage = 0;
         this.activeMobilePanel = 'viewer';
         this.doublePageEnabled = this.localStorageService.getProperty(LocalStorageService.DOUBLE_PAGE) === '1';
+        let withPlacement = 0;
         const spines: Page[] = [];
         for (const p of pages) {
             if (p['model'] === 'monographunit') {
@@ -567,6 +539,10 @@ export class BookService {
                 this.internalParts.push(internalPart);
             } else if (p['model'] === 'page') {
                 const page = new Page();
+                if (!!p['placement']) {
+                    withPlacement += 1;
+                    page.placement = p['placement'];
+                }
                 page.uuid = p['pid'];
                 page.parentUuid = p['parent_uuid'];
                 page.parentDoctype = p['parent_doctype'];
@@ -580,7 +556,7 @@ export class BookService {
                 page.setTitle(p['title']);
                 page.thumb = this.api.getThumbUrl(page.uuid);
                 page.position = PagePosition.Single;
-                if (page.type === 'spine') {
+                if (page.type === 'spine' && p['placement'] != 'left' && p['placement'] != 'right') {
                     spines.push(page);
                     continue;
                 }
@@ -616,13 +592,30 @@ export class BookService {
             this.allPages.push(page);
             index += 1;
         }
-        const bounds = this.computeDoublePageBounds(this.pages.length, titlePage, lastSingle, firstBackSingle);
-        if (bounds !== null) {
-            for (let i = bounds[0]; i < bounds[1]; i += 2) {
-                this.pages[i].position = PagePosition.Left;
-                this.pages[i + 1].position = PagePosition.Right;
+        const usePlacement = this.allPages.length > 0 && withPlacement == this.allPages.length;
+        console.log('use mods page placement', usePlacement);
+        if (!usePlacement) {
+            const bounds = this.computeDoublePageBounds(this.pages.length, titlePage, lastSingle, firstBackSingle);
+            if (bounds !== null) {
+                for (let i = bounds[0]; i < bounds[1]; i += 2) {
+                    this.pages[i].position = PagePosition.Left;
+                    this.pages[i + 1].position = PagePosition.Right;
+                }
+            }
+        } else {
+            for (const page of this.allPages) {
+                if (page.placement == 'left') {
+                    page.position = PagePosition.Left;
+                } else if (page.placement == 'right') {
+                    page.position = PagePosition.Right;
+                } else if (page.placement == 'single') {
+                    page.position = PagePosition.Single;
+                } else {
+                    page.position = PagePosition.Single;
+                }
             }
         }
+
         return currentPage;
     }
 
@@ -718,7 +711,7 @@ export class BookService {
           }
         }
         const value = this.settings.actions[action];
-        return value === 'always' || (value === 'public' && !this.isPrivate);
+        return value === 'always' || (value === 'available' && this.pageAvailable) || (value === 'public' && !this.isPrivate);
     }
 
     showOcr() {
@@ -801,6 +794,26 @@ export class BookService {
                 }
             }
         }
+    }
+
+    downloadPdf() {
+        let title = this.metadata.getTitle();
+        let uuid = this.uuid;
+        if (this.metadata.article && this.metadata.article.type == 'pdf') {
+            title = this.metadata.article.title;
+            uuid = this.metadata.article.uuid;
+        }
+        if (!title) {
+            title = uuid;
+        } 
+        const filename = title.substring(0, 30).trim() + '.pdf';
+        this.api.downloadFile(this.pdf.url).subscribe(
+            blob => {
+              saveAs(blob, filename);
+            },
+            error => {
+            }
+        );
     }
 
     generatePdf() {
@@ -908,7 +921,7 @@ export class BookService {
                 message: 'dialogs.private_sheetmusic.message',
                 button: 'common.close'
             }, autoFocus: false });
-        } else if (this.isPrivate && type === 'generate') {
+        } else if (!this.pageAvailable && type === 'generate') {
             this.dialog.open(BasicDialogComponent, { data: {
                 title: 'common.warning',
                 message: 'dialogs.private_document_pdf.message',
@@ -930,10 +943,16 @@ export class BookService {
     toggleDoublePage() {
         this.doublePageEnabled = !this.doublePageEnabled;
         this.localStorageService.setProperty(LocalStorageService.DOUBLE_PAGE, this.doublePageEnabled ? '1' : '0');
+        if (this.isEpub()) {
+            return;
+        }
         this.goToPage(this.getPage());
     }
 
     doublePageSupported() {
+        if (this.isEpub()) {
+            return true;
+        }
         return !this.fulltextQuery && this.getPage() && (this.getPage().position === PagePosition.Left || this.getPage().position === PagePosition.Right);
     }
 
@@ -1031,7 +1050,9 @@ export class BookService {
             } else if (page.imageType === PageImageType.PDF) {
                 this.onPdfPageSelected(page, rightPage);
             } else {
-                this.publishNewPages(BookPageState.Success);
+                // this.publishNewPages(BookPageState.Success);
+                this.subject.next(this.getViewerData());
+                this.subjectPages.next([page, rightPage]);
             }
         }
     }
@@ -1086,8 +1107,7 @@ export class BookService {
     }
 
     onInternalPartSelected(internalPart: InternalPart) {
-        this.pdf = null;
-        this.pdfPath = null;
+        this.pdf.clear();
         this.pageState = BookPageState.Loading;
         this.internalPart = internalPart;
         if (!internalPart.metadata) {
@@ -1122,8 +1142,7 @@ export class BookService {
 
 
     onArticleSelected(article: Article) {
-        this.pdf = null;
-        this.pdfPath = null;
+        this.pdf.clear();
         this.pageState = BookPageState.Loading;
         this.article = article;
         if (article.type === 'none') {
@@ -1151,7 +1170,7 @@ export class BookService {
                 urlQuery += '&fulltext=' + this.fulltextQuery;
             }
             this.location.go(this.settings.getPathPrefix() + '/view/' + this.uuid, urlQuery);
-            this.assignPdfPath(article.uuid);
+            this.setupPdf(article.uuid);
         } else if (article.type === 'pages') {
             if (article.firstPageUuid) {
                 this.pageState = BookPageState.Success;
@@ -1192,15 +1211,10 @@ export class BookService {
             } else if (leftPage.imageType === PageImageType.PDF) {
                 this.onPdfPageSelected(leftPage, rightPage);
             } else {
-                this.publishNewPages(BookPageState.Success);
+                // this.publishNewPages(BookPageState.Loading);
+                this.subject.next(this.getViewerData());
+                this.subjectPages.next([leftPage, rightPage]);
             } 
-        },
-        (error: AppError)  => {
-            if (error instanceof UnauthorizedError) {
-                this.publishNewPages(BookPageState.Inaccessible);
-            } else {
-                this.publishNewPages(BookPageState.Failure);
-            }
         });
     }
 
@@ -1209,10 +1223,11 @@ export class BookService {
             rightPage.selected = false;
         }
         this.doublePageEnabled = false;
-        this.assignPdfPath(leftPage.uuid);
+        this.setupPdf(leftPage.uuid);
     }
 
     public onInaccessibleImage() {
+        this.pageAvailable = false;
         if (this.doublePage && this.getRightPage()) {
             this.doublePageEnabled = false;
             this.goToPageOnIndex(this.lastIndex);
@@ -1221,8 +1236,40 @@ export class BookService {
         }
     }
 
+    public onImageSuccess() {
+        this.pageState = BookPageState.Success;
+        this.pageAvailable = true;
+    }
+    
+    public onImageFailure() {
+        this.pageState = BookPageState.Failure;
+        this.pageAvailable = false;
+    }
+
+    onPdfFilure() {
+        this.pageState = BookPageState.Failure;
+        this.pageAvailable = false;
+        if (this.allPages.length == 0 && this.articles.length == 0) {
+            this.showNavigationPanel = false;
+        }
+    }
+
+    onPdfSuccess() {
+        this.pageState = BookPageState.Success;
+        this.pageAvailable = true;
+        this.showNavigationPanel = true;
+    }
+
+    onPdfInaccessible() {
+        this.pageState = BookPageState.Inaccessible;
+        this.pageAvailable = false;
+        if (this.allPages.length == 0 && this.articles.length == 0) {
+            this.showNavigationPanel = false;
+        }
+    }
+
     private publishNewPages(state: BookPageState) {
-        this.logger.info('publishNewPages');
+        this.logger.info('publishNewPages', state);
         const leftPage = this.getPage();
         const rightPage = this.getRightPage();
         if (state !== BookPageState.Success) {
@@ -1261,8 +1308,7 @@ export class BookService {
 
 
     clear() {
-        this.pdf = null;
-        this.pdfPath = null;
+        this.pdf.clear();
         this.bookState = BookState.None;
         this.pageState = BookPageState.None;
         this.doublePage = false;
@@ -1363,23 +1409,24 @@ export interface BookParams {
 
 export enum ViewerImageType {
     IIIF, ZOOMIFY, JPEG
-  }
+}
   
-  export class ViewerData {
-    uuid1: string;
-    uuid2: string;
-    imageType: ViewerImageType;
-    query: string;
-  
-    doublePage(): boolean {
-      return !!this.uuid2;
-    }
-  
-    equals(to: ViewerData): boolean {
-        if (!to) {
-            return false;
-        }
-        return this.uuid1 === to.uuid1 && this.uuid2 === to.uuid2 && this.query === to.query && this.imageType === to.imageType;
-    }
+export class ViewerData {
+uuid1: string;
+uuid2: string;
+imageType: ViewerImageType;
+query: string;
 
-  }
+doublePage(): boolean {
+    return !!this.uuid2;
+}
+
+equals(to: ViewerData): boolean {
+    if (!to) {
+        return false;
+    }
+    return this.uuid1 === to.uuid1 && this.uuid2 === to.uuid2 && this.query === to.query && this.imageType === to.imageType;
+}
+
+}
+

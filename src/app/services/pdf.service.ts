@@ -5,6 +5,8 @@ import { PdfViewerComponent } from 'ng2-pdf-viewer';
 export class PdfService {
 
 
+
+    url: string;
     pageIndex: number;
     totalPages: number;
     outline;
@@ -13,13 +15,21 @@ export class PdfService {
     lastSearchQuery: string;
     zoom: number = 1;
     lastZoom: number = 1;
-
-
+    pdfLoading: boolean;
 
     constructor() {}
 
     private pdfComponent: PdfViewerComponent;
 
+
+    setUrl(url: string) {
+        this.pdfLoading = true;
+        this.url = url;
+    }
+
+    clear() {
+        this.url = null;
+    }
 
     init(data: any, pdfComponent: PdfViewerComponent) {
         this.pdfComponent = pdfComponent;
@@ -36,23 +46,42 @@ export class PdfService {
     }
 
     assignRange(items: any, last: number) {
+        if (!items) {
+            return;
+        }
         const link = this.pdfComponent.pdfLinkService
         for (let i = items.length - 1; i >= 0; i --) {
             const item = items[i];
-            if (!item.dest || item.dest.length == 0) {
-                items.splice(i, 0);
+            if (Array.isArray(item.dest)) {
+                link.pdfDocument.getPageIndex(item.dest[0]).then(pageIndex => {    
+                    item.pageIndex = pageIndex;
+                    if (i + 1 >= items.length) {
+                        item.endIndex = last;
+                    } else {
+                        item.endIndex = items[i + 1].pageIndex - 1;
+                    }
+                    if (item.items) {
+                        this.assignRange(item.items, item.endIndex);
+                    }
+                });
+            } else {
+                link.pdfDocument.getDestination(item.dest).then(dest => {
+                    link.pdfDocument.getPageIndex(dest[0]).then(pageIndex => {        
+                        item.pageIndex = pageIndex;
+                        if (i + 1 >= items.length) {
+                            item.endIndex = last;
+                        } else {
+                            item.endIndex = items[i + 1].pageIndex - 1;
+                        }
+                        if (item.items) {
+                            this.assignRange(item.items, item.endIndex);
+                        }
+                    });
+                });
             }
-            link.pdfDocument.getPageIndex(item.dest[0]).then(pageIndex => {
-                item.pageIndex = pageIndex;
-                if (i + 1 >= items.length) {
-                    item.endIndex = last;
-                } else {
-                    item.endIndex = items[i + 1].pageIndex - 1;
-                }
-                if (item.items) {
-                    this.assignRange(item.items, item.endIndex);
-                }
-            });
+            // if (!item.dest || item.dest.length == 0) {
+            //     items.splice(i, 0);
+            // }
         }   
     }
 
@@ -110,7 +139,6 @@ export class PdfService {
             query: this.searchQuery,
             highlightAll: true
         });
-        // this.searching = false;
     }
 
     goToPage(index: number) {
@@ -121,10 +149,7 @@ export class PdfService {
     }
 
     goTo(destination: any) {
-        this.pdfComponent.pdfLinkService.navigateTo(destination);
-
-
-
+        this.pdfComponent.pdfLinkService.goToDestination(destination);
     }
 
     hasNext(): boolean {

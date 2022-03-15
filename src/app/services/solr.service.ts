@@ -264,6 +264,10 @@ export class SolrService {
             '1.0': '',
             '2.0': 'page.number'
         },
+        'page_placement': {
+            '1.0': '',
+            '2.0': 'page.placement'
+        },
         'has_tiles': {
             '1.0': '',
             '2.0': 'has_tile'
@@ -294,7 +298,7 @@ export class SolrService {
         }
     }
 
-    public static allDoctypes = ['oldprintomnibusvolume', 'periodical', 'monographbundle', 'monograph', 'collection', 'clippingsvolume', 'map', 'sheetmusic', 'graphic',
+    public static allDoctypes = ['convolute', 'periodical', 'monographbundle', 'monograph', 'collection', 'clippingsvolume', 'map', 'sheetmusic', 'graphic',
     'archive', 'soundrecording', 'manuscript', 'monographunit',
     'soundunit', 'track', 'periodicalvolume', 'periodicalitem',
     'article', 'internalpart', 'supplement', 'page'];
@@ -364,10 +368,10 @@ export class SolrService {
             q += `,${this.field('licences_search')}`;
         }
         if (this.settings.k5Compat()) {
-            q += `,details,${this.field('rels_ext_index')}`;
+            q += `,details,${this.field('rels_ext_index')},${this.field('model_path')}`;
             q += `&q=${this.field('parent_pid')}:"${parent}"`;
         } else {
-            q += `,${this.field('page_type')},${this.field('page_number')},${this.field('track_length')}`;
+            q += `,${this.field('page_type')},${this.field('page_number')},${this.field('page_placement')},${this.field('track_length')}`;
             q += `&q=${this.field(own ? 'parent_pid' : 'step_parent_pid')}:"${parent}"`;
             q += `&sort=${this.field('rels_ext_index')} asc`;
         }
@@ -1117,15 +1121,18 @@ export class SolrService {
                 }
             } else {
                 if (!joinedDocytypes) {
-                    const ff = f.split('/')[0];
-                    if (map[ff] !== undefined) {
-                        map[ff] += facetFields[i + 1];
+                    const ff = f.split('/');
+                    if (map[ff[0]] !== undefined && (ff[0] != 'convolute' || ff[ff.length - 1] == 'page')) {
+                        map[ff[0]] += facetFields[i + 1];
+                    }
+                    if (map[ff[0]] !== undefined && ff[0] == 'convolute' && map[ff[1]] !== undefined) {
+                        map[ff[1]] += facetFields[i + 1];
                     }
                 } else {
                     const ff = f.split('/');
-                    if (ff[0] == 'oldprintomnibusvolume') {
+                    if (ff[0] == 'convolute') {
                         if (ff[ff.length - 1] != 'page') {
-                            map['oldprintomnibusvolume'] -= facetFields[i + 1];
+                            map['convolute'] -= facetFields[i + 1];
                         }
                     }
                 }
@@ -1387,8 +1394,19 @@ export class SolrService {
                 const details = doc['details'];
                 let idx = 0;
                 const arr = doc[this.field('rels_ext_index')];
+                const path = doc[this.field('model_path')];
                 if (arr && Array.isArray(arr) && arr.length > 0) {
-                    idx = arr[0] || 0;
+                    let i = 0;
+                    let pl = path[0].length;
+                    if (arr.length > 1 && path.length == arr.length) {
+                        for (let j = 1; j < path.length; j++) {
+                            if (path[j].length < pl) {
+                                pl = path[j].length;
+                                i = j;
+                            }
+                        }
+                    }
+                    idx = arr[i] || 0;
                 }
                 page['index'] = idx;
                 if (details && details[0]) {
@@ -1403,6 +1421,7 @@ export class SolrService {
             } else {
                 page['type'] = doc[this.field('page_type')] || 'unknown';
                 page['number'] = doc[this.field('page_number')];
+                page['placement'] = doc[this.field('page_placement')];
                 page['length'] = doc[this.field('track_length')];
             }
             items.push(page);
